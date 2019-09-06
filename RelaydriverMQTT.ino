@@ -26,7 +26,7 @@
 *
 */
 
- // TODO: Add watchdog support
+ 
 
 #include <Wire.h>
 #include <Ethernet.h>
