@@ -1,4 +1,26 @@
-
+/*
+* Home Automation Relay Controller
+* 
+* This project aims to use an Arduino to trigger relay drivers
+* attached via I2C by messages received from MQTT
+* 
+* Written by 
+* Jon Oxer - Copyright 2015-2017 SuperHouse Automation Pty Ltd <info@superhouse.tv>
+* Alex Ferrara <alex@receptiveit.com.au>
+* James Kennewell - Copyright 2019 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
+* 
+* 4th September 2019
+* 
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 *
@@ -23,18 +45,25 @@ static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };    // Set if no M
 IPAddress ip(192,168,1,35);             // Default if DHCP is not used
 
 /* MQTT Settings */
-IPAddress broker(192,168,1,125);            // MQTT broker
+IPAddress broker(192,168,1,108);            // MQTT broker
 #define MQTT_USER         "mqtt"          // Username presented to the MQTT broker
 #define MQTT_PASSWD       "Secret"      // Password presented to the MQTT broker
 #define MQTT_TOPIC_BUFFER  40
 char clientBuffer[40];                    // Maximum clientID length
 char messageBuffer[100];  // TODO: unused ATM
 char topicBuffer[35];                     // Maximum topic length
-const char* mqttClientID      = "ArduinoClient"; // Client ID presented to the MQTT broker
-const char* mqttEventTopic    = "events";        // MQTT logging topic
-const char* mqttTopicPrefix   = "house/switchboard/relay"; // MQTT topic prefix
-const char* mqttCmdTopic      = "command";       // MQTT command topic suffix
-const char* mqttStatusTopic   = "status";        // MQTT status topic suffix
+const char* mqttClientID      = "ArduinoClient";  // Client ID presented to the MQTT broker
+const char* mqttEventTopic    = "events";         // MQTT logging topic
+const char* mqttTopicPrefix   = "house/switchboard/12/relay"; // MQTT topic prefix Change the Switchboard ID Eg 12. if you have more then 1 panel.
+const char* mqttCmdTopic      = "command";        // MQTT command topic suffix
+const char* mqttStatusTopic   = "status";         // MQTT status topic suffix
+
+/* Watchdog Timer Settings */
+#define ENABLE_EXTERNAL_WATCHDOG        true       // true / false
+#define WATCHDOG_PIN                    8          // Output to pat the watchdog
+#define WATCHDOG_PULSE_LENGTH           50         // Milliseconds
+#define WATCHDOG_RESET_INTERVAL         30000      // Milliseconds. Also the period for sensor reports.
+long watchdogLastResetTime = 0;
 
 /* Relay 8 Modules */
 const int RLY8_I2C_ADDR[4] = {0x20, 0x21, 0x22, 0x23};
@@ -100,15 +129,45 @@ void setup() {
   client.setServer(broker, 1883);
   client.setCallback(mqttCallback);
 
+   /* Set up the watchdog timer */
+  if(ENABLE_EXTERNAL_WATCHDOG == true)
+  {
+    pinMode(WATCHDOG_PIN, OUTPUT);
+    digitalWrite(WATCHDOG_PIN, LOW);
+  }
+ 
   Serial.println("Ready.");
 
 }
 
+void runHeartbeat()
+{
+  if((millis() - watchdogLastResetTime) > WATCHDOG_RESET_INTERVAL)  // Is it time to run yet?
+  {
+   
+    {
+      patWatchdog();  // Only pat the watchdog if we successfully published to MQTT
+    }
+ 
+  }
+}
+
+void patWatchdog()
+{
+  if( ENABLE_EXTERNAL_WATCHDOG )
+  {
+    digitalWrite(WATCHDOG_PIN, HIGH);
+    delay(WATCHDOG_PULSE_LENGTH);
+    digitalWrite(WATCHDOG_PIN, LOW);
+  }
+  watchdogLastResetTime = millis();
+}
 void loop() {
   // Stay connected to MQTT
   if (!client.connected()) {
     reconnect();
   }
+  runHeartbeat();
   client.loop();
 }
 
@@ -231,7 +290,6 @@ void mqttCallback(char* topic, byte* payload, unsigned int length)
     if ((char)payload[0] == '1')
     {
       setLatchChannelOn(2);
-      delay(100);   // not actually needed, but i added this in here for how my lights work
       Serial.println("Relay 2 triggered ON");
       client.publish(mqttStatusTopic, '1');
       
