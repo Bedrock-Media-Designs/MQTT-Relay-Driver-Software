@@ -356,6 +356,8 @@ void mqttCallback(char* topic, byte* payload, unsigned int length)
 
   // TODO: This should be more generic and awesome
 
+ //test
+ 
   String tmpBuf = topic;
   Serial.println(tmpBuf);
   Serial.println(String(mqttTopicPrefix).length());
