@@ -45,18 +45,18 @@ static uint8_t mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };    // Set if no M
 IPAddress ip(192,168,1,35);             // Default if DHCP is not used
 
 /* MQTT Settings */
-IPAddress broker(192,168,1,108);            // MQTT broker
-#define MQTT_USER         "mqtt"          // Username presented to the MQTT broker
-#define MQTT_PASSWD       "Secret"      // Password presented to the MQTT broker
+IPAddress broker(192,168,1,108);           // MQTT broker
+#define MQTT_USER         "mqtt"           // Username presented to the MQTT broker
+#define MQTT_PASSWD       "Secret"         // Password presented to the MQTT broker
 #define MQTT_TOPIC_BUFFER  40
 char clientBuffer[40];                    // Maximum clientID length
-char messageBuffer[100];  // TODO: unused ATM
+char messageBuffer[100];                  // TODO: unused ATM
 char topicBuffer[35];                     // Maximum topic length
-const char* mqttClientID      = "ArduinoClient";  // Client ID presented to the MQTT broker
-const char* mqttEventTopic    = "events";         // MQTT logging topic
+const char* mqttClientID      = "Switchboard_12_Relays1-32";  // Client ID presented to the MQTT broker
+const char* mqttEventTopic    = "events";                     // MQTT logging topic
 const char* mqttTopicPrefix   = "house/switchboard/12/relay"; // MQTT topic prefix Change the Switchboard ID Eg 12. if you have more then 1 panel.
-const char* mqttCmdTopic      = "command";        // MQTT command topic suffix
-const char* mqttStatusTopic   = "status";         // MQTT status topic suffix
+const char* mqttCmdTopic      = "command";                    // MQTT command topic suffix
+const char* mqttStatusTopic   = "status";                     // MQTT status topic suffix
 
 /* Watchdog Timer Settings */
 #define ENABLE_EXTERNAL_WATCHDOG        true       // true / false
@@ -66,8 +66,15 @@ const char* mqttStatusTopic   = "status";         // MQTT status topic suffix
 long watchdogLastResetTime = 0;
 
 /* Relay 8 Modules */
-const int RLY8_I2C_ADDR[4] = {0x20, 0x21, 0x22, 0x23};
-byte BankA[4] = {0, 0, 0, 0}; // Current status of all outputs on first shield, one bit per output
+#define SHIELD_1_I2C_ADDRESS  0x20  // 0x20 is the address with all jumpers removed
+#define SHIELD_2_I2C_ADDRESS  0x21  // 0x21 is the address with a jumper on position A0
+#define SHIELD_3_I2C_ADDRESS  0x22  // 0x22 is the address with a jumper on position A1
+#define SHIELD_4_I2C_ADDRESS  0x23  // 0x23 is the address with a jumper on position A0, A1
+byte shield1BankA = 0; // Current status of all outputs on first shield, one bit per output
+byte shield2BankA = 0; // Current status of all outputs on second shield, one bit per output
+byte shield3BankA = 0; // Current status of all outputs on first shield, one bit per output
+byte shield4BankA = 0; // Current status of all outputs on second shield, one bit per output
+
 
 /*------------------------------------------------------------------------*/
 
@@ -122,7 +129,17 @@ void setup() {
   
   // Initialise Relay8 modules
   // TODO: support multiple shields
-  initRelay8(RLY8_I2C_ADDR[0]);
+   initialiseShield(SHIELD_1_I2C_ADDRESS);
+  sendRawValueToLatch1(0);  // If we don't do this, channel 6 turns on! I don't know why
+
+  initialiseShield(SHIELD_2_I2C_ADDRESS);
+  sendRawValueToLatch2(0);  // If we don't do this, channel 6 turns on! I don't know why
+
+  initialiseShield(SHIELD_3_I2C_ADDRESS);
+  sendRawValueToLatch3(0);  // If we don't do this, channel 6 turns on! I don't know why
+
+  initialiseShield(SHIELD_4_I2C_ADDRESS);
+  sendRawValueToLatch4(0);  // If we don't do this, channel 6 turns on! I don't know why
 
   // Set MQTT broker settings
   Serial.println("MQTT broker settings...");
@@ -137,18 +154,15 @@ void setup() {
   }
  
   Serial.println("Ready.");
-
 }
 
 void runHeartbeat()
 {
   if((millis() - watchdogLastResetTime) > WATCHDOG_RESET_INTERVAL)  // Is it time to run yet?
   {
-   
-    {
+     {
       patWatchdog();  // Only pat the watchdog if we successfully published to MQTT
     }
- 
   }
 }
 
@@ -201,11 +215,18 @@ void reconnect() {
   }
 }
 
-void initRelay8(int i2c_addr) {
+void initialiseShield(int shieldAddress)
+{
+  // Set addressing style
+  Wire.beginTransmission(shieldAddress);
+  Wire.write(0x12);
+  Wire.write(0x20); // use table 1.4 addressing
+  Wire.endTransmission();
+
   // Set I/O bank A to outputs
-  Wire.beginTransmission(i2c_addr);
-  Wire.write(0x00);
-  Wire.write(0x00);
+  Wire.beginTransmission(shieldAddress);
+  Wire.write(0x00); // IODIRA register
+  Wire.write(0x00); // Set all of bank A to outputs
   Wire.endTransmission();
 }
 
@@ -231,41 +252,95 @@ void setLatchChannelOn (byte channelId)
   {
     byte shieldOutput = channelId;
     byte channelMask = 1 << (shieldOutput - 1);
-    BankA[0] = BankA[0] | channelMask;
-    sendRawValueToLatch(BankA[0], RLY8_I2C_ADDR[0]);
+    shield1BankA = shield1BankA | channelMask;
+    sendRawValueToLatch1(shield1BankA);
   }
   else if ( channelId >= 9 && channelId <= 16 )
   {
     byte shieldOutput = channelId - 8;
     byte channelMask = 1 << (shieldOutput - 1);
-    BankA[1] = BankA[1] | channelMask;
-    sendRawValueToLatch(BankA[1], RLY8_I2C_ADDR[1]);
+    shield2BankA = shield2BankA | channelMask;
+    sendRawValueToLatch2(shield2BankA);
+  }
+  else if ( channelId >= 17 && channelId <= 24 )
+  {
+    byte shieldOutput = channelId - 16;
+    byte channelMask = 1 << (shieldOutput - 1);
+    shield3BankA = shield3BankA | channelMask;
+    sendRawValueToLatch3(shield3BankA);
+  }
+  else if ( channelId >= 25 && channelId <= 32 )
+  {
+    byte shieldOutput = channelId - 24;
+    byte channelMask = 1 << (shieldOutput - 1);
+    shield4BankA = shield4BankA | channelMask;
+    sendRawValueToLatch4(shield4BankA);
   }
 }
 
 void setLatchChannelOff (byte channelId)
 {
-  if( channelId >= 1 && channelId <= 8 )
+  if ( channelId >= 1 && channelId <= 8 )
   {
     byte shieldOutput = channelId;
     byte channelMask = 255 - ( 1 << (shieldOutput - 1));
-    BankA[0] = BankA[0] & channelMask;
-    sendRawValueToLatch(BankA[0], RLY8_I2C_ADDR[0]);
+    shield1BankA = shield1BankA & channelMask;
+    sendRawValueToLatch1(shield1BankA);
   }
-  else if( channelId >= 9 && channelId <= 16 )
+  else if ( channelId >= 9 && channelId <= 16 )
   {
     byte shieldOutput = channelId - 8;
     byte channelMask = 255 - ( 1 << (shieldOutput - 1));
-    BankA[1] = BankA[1] & channelMask;
-    sendRawValueToLatch(BankA[1], RLY8_I2C_ADDR[1]);  // TODO: This looks redundant and could be better
+    shield2BankA = shield2BankA & channelMask;
+    sendRawValueToLatch2(shield2BankA);
+  }
+  else if ( channelId >= 17 && channelId <= 24 )
+  {
+    byte shieldOutput = channelId - 16;
+    byte channelMask = 255 - ( 1 << (shieldOutput - 1));
+    shield3BankA = shield3BankA & channelMask;
+    sendRawValueToLatch3(shield3BankA);
+  }
+  else if ( channelId >= 25 && channelId <= 32 )
+  {
+    byte shieldOutput = channelId - 24;
+    byte channelMask = 255 - ( 1 << (shieldOutput - 1));
+    shield4BankA = shield4BankA & channelMask;
+    sendRawValueToLatch4(shield4BankA);
   }
 }
 
-void sendRawValueToLatch(byte rawValue, int i2cAddress)
+void sendRawValueToLatch1(byte rawValue)
 {
-  Wire.beginTransmission(i2cAddress);
+  Wire.beginTransmission(SHIELD_1_I2C_ADDRESS);
   Wire.write(0x12);        // Select GPIOA
   Wire.write(rawValue);    // Send value to bank A
+  shield1BankA = rawValue;
+  Wire.endTransmission();
+}
+
+void sendRawValueToLatch2(byte rawValue)
+{
+  Wire.beginTransmission(SHIELD_2_I2C_ADDRESS);
+  Wire.write(0x12);        // Select GPIOA
+  Wire.write(rawValue);    // Send value to bank A
+  shield2BankA = rawValue;
+  Wire.endTransmission();
+}
+void sendRawValueToLatch3(byte rawValue)
+{
+  Wire.beginTransmission(SHIELD_3_I2C_ADDRESS);
+  Wire.write(0x12);        // Select GPIOA
+  Wire.write(rawValue);    // Send value to bank A
+  shield2BankA = rawValue;
+  Wire.endTransmission();
+}
+void sendRawValueToLatch4(byte rawValue)
+{
+  Wire.beginTransmission(SHIELD_4_I2C_ADDRESS);
+  Wire.write(0x12);        // Select GPIOA
+  Wire.write(rawValue);    // Send value to bank A
+  shield2BankA = rawValue;
   Wire.endTransmission();
 }
 
