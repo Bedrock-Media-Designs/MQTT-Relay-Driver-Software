@@ -160,7 +160,7 @@ void setup()
 	sendRawValueToLatch(SHIELD_3_I2C_ADDRESS, 0);	// If we don't do this, channel 6 turns on! I don't know why
 
 	initialiseShield(SHIELD_4_I2C_ADDRESS);
-	sendRawValueToLatch(SHIELD_3_I2C_ADDRESS, 0);	// If we don't do this, channel 6 turns on! I don't know why
+	sendRawValueToLatch(SHIELD_4_I2C_ADDRESS, 0);	// If we don't do this, channel 6 turns on! I don't know why
 
 	// Set MQTT broker settings
 	Serial.println("MQTT broker settings...");
