@@ -33,8 +33,8 @@ Written by
 * Jon Oxer               - Copyright 2015-2017 SuperHouse Automation Pty Ltd <info@superhouse.tv>
 * James Kennewell        - Copyright 2019-2020 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
 * Alex Ferrara           - <alex@receptiveit.com.au>
-* Chris Aitken @aitken85 - SuperHouse Automation Discord
-* Lusa         @lusa     - SuperHouse Automation Discord
+* Chris Aitken @aitken85 - SuperHouse Automation Discord Server
+* Lusa         @lusa     - SuperHouse Automation Discord Server
 
 ## DISTRIBUTION
 The specific terms of distribution of this project are governed by the license referenced below.
