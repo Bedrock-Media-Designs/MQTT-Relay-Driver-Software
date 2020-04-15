@@ -1,8 +1,6 @@
 
 # Freetronics Relay 8 Mqtt Control
 
-PLEASE NOTE THIS PROGRAM IS CURRENTLY BEING REWRITTEN IT MAY BE BROKEN.
-
 Copyright 2020 Bedrock Media Productions Pty Ltd www.bedrockmediaproductions.com.au
 
 MQTT SCRIPT FOR CONTROLLING RELAY8 SHIELDS FROM FREETRONICS
@@ -14,9 +12,13 @@ This project aims to use an Arduino to trigger relay drivers
 
 ##MQTT Topics
 
-We use a prefix to create out topic this can be change in the configuration section,
-By default the command topic structure is house/switchboard/12/relay/+/command (+ being the relay number) this program currently supports up to 32 relays
-By default the status topic structure is house/switchboard/12/relay/+/status (+ being the relay number) this program currently supports up to 32 relays
+We use a single-level wildcard to set the topic, The default the command topic structure is "house/switchboard/01/relay/+/command" (+ being the relay number) 
+this code allow tor triggering of the Relay driver boards Jon Oxer  designed years ago (Relay8) it uses a single mqtt topic and pulls the relay number out.  so all you need to have in the payload is a ``1`` for ON or a ``0`` for OFF 
+
+More infomation to be added soon
+
+
+
 
 
 
@@ -28,9 +30,11 @@ Relay8 Watchdog Shield <https://bedrockmediaproductions.com.au/product/r8wds/>
 
  ## CREDITS 
 Written by 
-* Jon Oxer - Copyright 2015-2017 SuperHouse Automation Pty Ltd <info@superhouse.tv>
-* Alex Ferrara <alex@receptiveit.com.au>
-* James Kennewell - Copyright 2019 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
+* Jon Oxer               - Copyright 2015-2017 SuperHouse Automation Pty Ltd <info@superhouse.tv>
+* James Kennewell        - Copyright 2019-2020 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
+* Alex Ferrara           - <alex@receptiveit.com.au>
+* Chris Aitken @aitken85 - SuperHouse Automation Discord
+* Lusa         @lusa     - SuperHouse Automation Discord
 
 ## DISTRIBUTION
 The specific terms of distribution of this project are governed by the license referenced below.
