@@ -1,5 +1,5 @@
 
-# Freetronics Relay 8 Mqtt Control
+# Relay8 MQTT Driver Software
 
 Copyright 2020 Bedrock Media Productions Pty Ltd www.bedrockmediaproductions.com.au
 
