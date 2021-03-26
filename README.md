@@ -1,49 +1,51 @@
-
-# Relay8 MQTT Driver Software
-
+# MQTT-Relay-Driver-Software
 Copyright 2020 Bedrock Media Productions Pty Ltd www.bedrockmediaproductions.com.au
 
-MQTT SCRIPT FOR CONTROLLING RELAY8 SHIELDS FROM FREETRONICS
 
-Features:
+ARDUINO SCRIPT FOR RECEIVING COMMANDS OVER MQTT AND PUSHING TO A RELAY DRIVER BOARD 
 
-This project aims to use an Arduino to trigger relay drivers
-* attached via I2C by messages received from MQTT
+## Features:
 
-##MQTT Topics
+* Single Arduino to listen to MQTT topic with a wildcard, Publish the state change to a relay output chanel over I2C.
+* Sends MQTT status payloads as JSON formatted string for easy parsing within your favourite automation software.
+* Listens on a single topic with a wild card `house/switchboard/01/relay/+`
+* Simple config.h file to edit your network and mqtt details, with main code ready to go without modification.
+* Configured to allow for multiple relay controllers.
 
-We use a single-level wildcard to set the topic, The default the command topic structure is "house/switchboard/01/relay/+/command" (+ being the relay number) 
-this code allow tor triggering of the Relay driver boards Jon Oxer  designed years ago (Relay8) it uses a single mqtt topic and pulls the relay number out.  so all you need to have in the payload is a ``1`` for ON or a ``0`` for OFF 
+## Expected payloads
+#### On (re)connection to MQTT broker:
 
-More infomation to be added soon
-
-
-
-
+`{event: reconnected, ip: ###.###.###.###, controller: #}`
 
 
-More information:
+#### On heartbeat:
 
-Relay Carrier Shield <https://www.superhouse.tv/product/relay-shield-carrier-x4/>
+`{event: status, ip: ###.###.###.###, controller: #}`
 
-Relay8 Watchdog Shield <https://bedrockmediaproductions.com.au/product/r8wds/>
+## Required libraries
+* PubSubClient [https://github.com/knolleary/pubsubclient](https://github.com/knolleary/pubsubclient)
+* Adafruit_MCP23017 [https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library](https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library)
 
- ## CREDITS 
+## Compatable Products
+This software is compatable with:
+* Freetronics      8 Channel Relay Driver Shield.
+* Bedrock Media    16 Channel Relay Driver Shield.   (Not released)
+* Bedrock Media    128 Channel Relay Driver 2RU.  (Not released)
+
+## CREDITS
 Written by 
 * Jon Oxer               - Copyright 2015-2017 SuperHouse Automation Pty Ltd <info@superhouse.tv>
-* James Kennewell        - Copyright 2019-2020 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
-* Alex Ferrara           - <alex@receptiveit.com.au>
-* Chris Aitken @aitken85 - SuperHouse Automation Discord Server
-* Lusa         @lusa     - SuperHouse Automation Discord Server
+* James Kennewell        - Copyright 2019-2021 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
+* Chris Aitken @aitken85 - SuperHouse Automation Discord Server | github.com/caitken-com
 
 ## DISTRIBUTION
 The specific terms of distribution of this project are governed by the license referenced below.
 
-##LICENCE
+## LICENCE
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
- This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
- You should have received a copy of the GNU General Public License  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
