@@ -2,7 +2,7 @@
 #include <Ethernet.h>
 #include <PubSubClient.h>
 #include <Adafruit_MCP23017.h>
-
+ 
 
 /**
  * Topic: relays/{{relay-number: 1-99}}
@@ -23,7 +23,7 @@ EthernetClient network_client;
 
 PubSubClient mqtt_client(network_client);
 
-Adafruit_MCP23017 mcps[6];
+Adafruit_MCP23017 mcps[8];
 
 unsigned long watchdog_timer = 0;
 unsigned long mqtt_timer = 0;
@@ -259,7 +259,7 @@ void setup()
   mqtt_client.setCallback(mqttReceive);
 
   // Setup pins
-  for (signed char i = 0; i < 6; i++)
+  for (signed char i = 0; i < 8; i++)
   {
     mcps[i].begin(i);
 
