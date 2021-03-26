@@ -3,7 +3,10 @@ Copyright 2020 Bedrock Media Productions Pty Ltd www.bedrockmediaproductions.com
 
 
 ARDUINO SCRIPT FOR RECEIVING COMMANDS OVER MQTT AND PUSHING TO A RELAY DRIVER BOARD
-
+This software is compatable with:
+Freetronics      8 Channel Relay Driver Shield.
+Bedrock Media    16 Channel Relay Driver Shield.   (Not released)
+Bedrock Media    128 Channel Relay Driver 2RU.  (Not released)
 ## Features:
 
 * Single Arduino to listen to MQTT topic with a wildcard, Publish the state change to a relay output chanel over I2C.
