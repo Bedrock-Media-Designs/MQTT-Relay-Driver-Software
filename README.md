@@ -1,24 +1,22 @@
-# MQTT-Lightswitch-Controller-V2
+# MQTT-Relay-Driver-Software
 Copyright 2020 Bedrock Media Productions Pty Ltd www.bedrockmediaproductions.com.au
 
 
-ARDUINO SCRIPT FOR RECEIVING BUTTON INPUTS OVER I2C AND PUBLISHING VIA MQTT
+ARDUINO SCRIPT FOR RECEIVING COMMANDS OVER MQTT AND PUSHING TO A RELAY DRIVER BOARD
 
 ## Features:
 
-* Single Arduino to read 96 inputs from MCP23017 IO expanders and publish events to MQTT.
-* Sends MQTT payloads as JSON formatted string for easy parsing within your favourite automation software.
+* Single Arduino to listen to MQTT topic with a wildcard, Publish the state change to a relay output chanel over I2C.
+* Sends MQTT status payloads as JSON formatted string for easy parsing within your favourite automation software.
+* Listens on a single topic with a wild card `house/switchboard/01/relay/+`
 * Simple config.h file to edit your network and mqtt details, with main code ready to go without modification.
-* Configured to allow for multiple controllers.
+* Configured to allow for multiple relay controllers.
 
 ## Expected payloads
 #### On (re)connection to MQTT broker:
 
 `{event: reconnected, ip: ###.###.###.###, controller: #}`
 
-#### On button press event:
-
-`{controller: #, button: #}`
 
 #### On heartbeat:
 
@@ -31,9 +29,8 @@ ARDUINO SCRIPT FOR RECEIVING BUTTON INPUTS OVER I2C AND PUBLISHING VIA MQTT
 ## CREDITS
 Written by 
 * Jon Oxer               - Copyright 2015-2017 SuperHouse Automation Pty Ltd <info@superhouse.tv>
-* James Kennewell        - Copyright 2019-2020 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
+* James Kennewell        - Copyright 2019-2021 Bedrock Media Productions Pty Ltd <james@bedrockmediaproductions.com.au>
 * Chris Aitken @aitken85 - SuperHouse Automation Discord Server | github.com/caitken-com
-* Lusa         @lusa     - SuperHouse Automation Discord Server
 
 ## DISTRIBUTION
 The specific terms of distribution of this project are governed by the license referenced below.
